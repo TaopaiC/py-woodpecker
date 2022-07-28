@@ -8,6 +8,7 @@ authors = ["TaopaiC <124380+TaopaiC@users.noreply.github.com>"]
 python = "^3.9"
 requests = "^2.28.1"
 argparse = "^1.4.0"
+rollbar = "^0.16.3"
 
 [tool.poetry.dev-dependencies]
 

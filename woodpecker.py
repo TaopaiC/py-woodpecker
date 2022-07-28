@@ -2,6 +2,7 @@ import requests
 import time
 import argparse
 import threading
+import rollbar
 from urllib3.connectionpool import HTTPConnectionPool
 
 parser = argparse.ArgumentParser(description='woodpecker')
@@ -11,11 +12,13 @@ parser.add_argument("--step", type=int, default=10, help="interval step (sec)")
 parser.add_argument("--job-enable", type=bool, default=False, help="enable 2nd threading job")
 parser.add_argument("--job-init", type=int, default=20, help="for 2nd job, interval init at (sec)")
 parser.add_argument("--job-step", type=int, default=10, help="for 2nd job, interval step (sec)")
+parser.add_argument("--rollbar-token", type=str, help="set rollbar access token and enable rollbar")
 args = parser.parse_args()
 print(args)
 
 def tprint(*args, **kwargs):
   print('[{:.6f}] {}'.format(time.time(), ' '.join(map(str, args))))
+
 
 def patch_connectionpool():
   previous_get_conn = HTTPConnectionPool._get_conn
@@ -27,8 +30,28 @@ def patch_connectionpool():
 
 patch_connectionpool()
 
+if args.rollbar_token:
+  rollbar.init(args.rollbar_token)
+  print('rollba inited')
+
+  def rollbarWrapper(func):
+    def wrapper():
+      try:
+        print('wrapper')
+        return func()
+      except KeyboardInterrupt:
+        raise
+      except:
+        rollbar.report_exc_info()
+        raise
+    return wrapper
+else:
+  def rollbarWrapper(func):
+    return func
+
 s = requests.Session()
 
+@rollbarWrapper
 def job():
   i = args.init
   while True:
@@ -39,6 +62,7 @@ def job():
     time.sleep(i)
     i = i + args.step
 
+@rollbarWrapper
 def job2():
   i = args.job_init
   while True:

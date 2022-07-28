@@ -56,6 +56,7 @@ def job():
   i = args.init
   while True:
     tprint('start')
+    s.cookies.clear()
     r = s.request('get', args.url)
     tprint('response code: {}\n'.format(r.status_code))
     tprint('sleep {}'.format(i))
@@ -67,6 +68,7 @@ def job2():
   i = args.job_init
   while True:
     tprint(' start')
+    s.cookies.clear()
     r = s.request('get', args.url)
     tprint(' response code: {}\n'.format(r.status_code))
     tprint(' sleep {}'.format(i))

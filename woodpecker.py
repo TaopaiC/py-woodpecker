@@ -14,8 +14,6 @@ parser.add_argument("--job-step", type=int, default=10, help="for 2nd job, inter
 args = parser.parse_args()
 print(args)
 
-s = requests.Session()
-
 def patch_connectionpool():
   previous_get_conn = HTTPConnectionPool._get_conn
   def _new_get_conn(self, timeout=None):
@@ -25,6 +23,8 @@ def patch_connectionpool():
   HTTPConnectionPool._get_conn = _new_get_conn
 
 patch_connectionpool()
+
+s = requests.Session()
 
 def job():
   i = args.init

@@ -1,6 +1,7 @@
 import requests
 import time
 import argparse
+from urllib3.connectionpool import HTTPConnectionPool
 
 parser = argparse.ArgumentParser(description='woodpecker')
 parser.add_argument("--url", type=str, default='https://httpbin.org/get', help="url")
@@ -10,6 +11,16 @@ args = parser.parse_args()
 print(args)
 
 s = requests.Session()
+
+def patch_connectionpool():
+  previous_get_conn = HTTPConnectionPool._get_conn
+  def _new_get_conn(self, timeout=None):
+    conn = previous_get_conn(self, timeout)
+    print('[{}] [q: {}/{}] conn.id: {}'.format(time.time(), self.pool.qsize(), self.pool.maxsize, id(conn)))
+    return conn
+  HTTPConnectionPool._get_conn = _new_get_conn
+
+patch_connectionpool()
 
 def job():
   i = args.start

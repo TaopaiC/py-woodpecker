@@ -3,6 +3,7 @@ import time
 import argparse
 import threading
 import rollbar
+import subprocess
 from urllib3.connectionpool import HTTPConnectionPool
 
 DEFAULT_USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36"
@@ -22,6 +23,11 @@ print(args)
 def tprint(*args, **kwargs):
   print('[{:.6f}] {}'.format(time.time(), ' '.join(map(str, args))))
 
+def get_git_revision_short_hash():
+  try:
+    return subprocess.check_output(['gita', 'rev-parse', '--short', 'HEAD']).decode('ascii').strip()
+  except:
+    return None
 
 def patch_connectionpool():
   previous_get_conn = HTTPConnectionPool._get_conn
@@ -34,8 +40,8 @@ def patch_connectionpool():
 patch_connectionpool()
 
 if args.rollbar_token:
-  rollbar.init(args.rollbar_token)
-  print('rollba inited')
+  rollbar.init(args.rollbar_token, code_version=get_git_revision_short_hash())
+  print('rollbar inited')
 
   def rollbarWrapper(func):
     def wrapper():

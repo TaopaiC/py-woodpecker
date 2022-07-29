@@ -5,6 +5,8 @@ import threading
 import rollbar
 from urllib3.connectionpool import HTTPConnectionPool
 
+DEFAULT_USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36"
+
 parser = argparse.ArgumentParser(description='woodpecker')
 parser.add_argument("--url", type=str, default='https://httpbin.org/get', help="url")
 parser.add_argument("--init", type=int, default=20, help="interval init at (sec)")
@@ -13,6 +15,7 @@ parser.add_argument("--job-enable", type=bool, default=False, help="enable 2nd t
 parser.add_argument("--job-init", type=int, default=20, help="for 2nd job, interval init at (sec)")
 parser.add_argument("--job-step", type=int, default=10, help="for 2nd job, interval step (sec)")
 parser.add_argument("--rollbar-token", type=str, help="set rollbar access token and enable rollbar")
+parser.add_argument("--user-agent", type=str, default=DEFAULT_USER_AGENT, help="set user agent string")
 args = parser.parse_args()
 print(args)
 
@@ -57,6 +60,7 @@ def job():
   while True:
     tprint('start')
     s.cookies.clear()
+    s.headers.update({ 'User-Agent': args.user_agent })
     r = s.request('get', args.url)
     tprint('response code: {}\n'.format(r.status_code))
     tprint('sleep {}'.format(i))
@@ -69,6 +73,7 @@ def job2():
   while True:
     tprint(' start')
     s.cookies.clear()
+    s.headers.update({ 'User-Agent': args.user_agent })
     r = s.request('get', args.url)
     tprint(' response code: {}\n'.format(r.status_code))
     tprint(' sleep {}'.format(i))
